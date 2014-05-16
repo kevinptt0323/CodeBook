@@ -6,23 +6,18 @@ template<class T>
 T abs(const T& n) {return n>=T(0)?n:-n;}
 class BigNum {
 public:
-	BigNum(const int& num=0) : len(0), step(10000), sign(1) {
+	BigNum(const int& num=0) : len(0), sign(1) {
 		int num2=num;
 		memset(arr, 0, sizeof(arr));
 		if( num2<0 ) sign=-1, num2*=-1;
 		while( num2 ) arr[len++]=num2%step, num2/=step;
 	}
-	//BigNum(char* num) {}
-	BigNum(const BigNum& b) : len(b.len), step(b.step), sign(b.sign) {
+	BigNum(const char* num0) : len(0), sign(1) {
+		*this = num0;
+	}
+	BigNum(const BigNum& b) : len(b.len), sign(b.sign) {
 		memset(arr, 0, sizeof(arr));
 		for(int i=0; i<len; ++i) arr[i]=b.arr[i];
-	}
-	BigNum(const char* s) : step(10000) {
-		memset(arr, 0, sizeof(arr));
-		int i;
-		if( s[0]=='-' ) i=1, sign=-1, len=(strlen(s)+3)/4;
-		else i=0, sign=1, len=(strlen(s)+2)/4;
-		for(; s[i]; ++i) *this=(*this)*10+s[i]-48;
 	}
 	~BigNum() {}
 	BigNum & operator=(const BigNum& b) {
@@ -38,6 +33,23 @@ public:
 		len=0, sign=1;
 		if( num2<0 ) sign=-1, num2*=-1;
 		while( num2 ) arr[len++]=num2%step, num2/=step;
+		return *this;
+	}
+	BigNum & operator=(const char* num0) {
+		char num[strlen(num0)];
+		int offset = 0;
+		if( num0[0] == '-' ) sign = -1, ++offset;
+		while( num0[offset]=='0' ) ++offset;
+		strcpy(num, num0+offset);
+		int tmp = strlen(num);
+		for(int i=tmp-digit; i>=0; i-=digit) {
+			arr[len] = 0;
+			for(int j=0; j<digit; ++j) arr[len] = arr[len]*10 + num[i+j]-'0';
+			++len;
+		}
+		arr[len] = 0;
+		for(int j=0; j<tmp%digit; ++j) arr[len] = arr[len]*10 + num[j]-'0';
+		++len;
 		return *this;
 	}
 	BigNum operator+(const BigNum& b) const {
@@ -83,7 +95,7 @@ public:
 		return res;
 	}
 	BigNum operator/(const int& b) const {
-		if( b==0 ) return BigNum(0);
+		if( b==0 ) return 0;
 		BigNum res;
 		long long reduce=0;
 		int signb=b>0?1:-1, b2=b*signb;
@@ -99,7 +111,7 @@ public:
 	}
 	BigNum operator/(const BigNum& b) const {
 		BigNum abs_this=abs(*this);
-		if( b==0 ) return BigNum(0);
+		if( b==0 ) return 0;
 		BigNum st=0, ed, md;
 		if( b.arr[0]>0 ) ed=abs_this/b.arr[0];
 		else if( b.arr[1]*b.step+b.arr[0]>0 ) ed=abs_this/b.arr[1]*b.step+b.arr[0];
@@ -115,7 +127,7 @@ public:
 		return st;
 	}
 	BigNum operator%(const int& b) const {
-		if( b<=0 ) return BigNum(0);
+		if( b<=0 ) return 0;
 		BigNum res;
 		long long reduce=0;
 		for(int i=len-1; i>=0; --i)
@@ -124,7 +136,7 @@ public:
 	}
 	BigNum operator%(const BigNum& b) const {
 		if( b.isInt() ) return *this%int(b.toInt());
-		if( b<=BigNum(0) ) return BigNum(0);
+		if( b<=0 ) return 0;
 		return *this-*this/b*b;
 	}
 	bool operator<(const BigNum& b) const {
@@ -169,15 +181,26 @@ public:
 	}
 	long long toInt() const {return sign*(1ll*arr[1]*step+arr[0]);}
 private:
-	int arr[1000];
-	int len;
-	int step;
-	int sign;
+	static const int length = 10000;
+	static const int digit = 4, step = 10000;
+	int arr[length];
+	int len, sign;
 };
 int main() {
-	BigNum a=1;
-	for(int i=1; i<=1000; i++) a=a*i;
-	a.print();
-	printf("\n");
+	BigNum a="999999999999999999999999999999999999999999999999999999999999999999999999999999999999999";
+	(a*a).print();
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

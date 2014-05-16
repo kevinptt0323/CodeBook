@@ -96,8 +96,8 @@ set shiftwidth=4
 set autoindent
 set smarttab
 set smartindent
-map<F9> :!g++ "%:r.cpp" -o "%:r.out" -Wall -Wshadow -O2 -Im && "./%:r.out"
-map<F10> :!g++ "%:r.cpp" -o "%:r.out" -Wall -Wshadow -O2 -Im
+map<F9> :!g++ "%:t" -o "%:r.out" -Wall -Wshadow -O2 -Im && "./%:r.out"
+map<F10> :!g++ "%:t" -o "%:r.out" -Wall -Wshadow -O2 -Im
 \end{lstlisting}
 
 \subsection{.screenrc}

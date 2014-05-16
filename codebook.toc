@@ -1,0 +1,22 @@
+\contentsline {section}{\numberline {1}Enviroment Settings}{1}{section.1}
+\contentsline {subsection}{\numberline {1.1}.vimrc}{1}{subsection.1.1}
+\contentsline {subsection}{\numberline {1.2}.screenrc}{1}{subsection.1.2}
+\contentsline {section}{\numberline {2}Data Structure}{2}{section.2}
+\contentsline {subsection}{\numberline {2.1}Fenwick Tree [1, size]}{2}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Fenwick Tree 2D - [1, size][1, size]}{2}{subsection.2.2}
+\contentsline {subsection}{\numberline {2.3}Heap}{2}{subsection.2.3}
+\contentsline {subsection}{\numberline {2.4}Deap}{3}{subsection.2.4}
+\contentsline {subsection}{\numberline {2.5}zkw Segment Tree\\(range modify and query)}{3}{subsection.2.5}
+\contentsline {subsection}{\numberline {2.6}劃分樹}{4}{subsection.2.6}
+\contentsline {section}{\numberline {3}String}{5}{section.3}
+\contentsline {subsection}{\numberline {3.1}KMP}{5}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}K Algorithm}{5}{subsection.3.2}
+\contentsline {subsection}{\numberline {3.3}Suffix Array}{5}{subsection.3.3}
+\contentsline {subsection}{\numberline {3.4}Longest Palindromic Substring}{6}{subsection.3.4}
+\contentsline {section}{\numberline {4}Math}{6}{section.4}
+\contentsline {subsection}{\numberline {4.1}Euler's phi function O(n)}{6}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}Extended Euclid’s Algorithm}{6}{subsection.4.2}
+\contentsline {subsection}{\numberline {4.3}Möbius function}{6}{subsection.4.3}
+\contentsline {subsection}{\numberline {4.4}China remainder theorem}{7}{subsection.4.4}
+\contentsline {section}{\numberline {5}Others}{7}{section.5}
+\contentsline {subsection}{\numberline {5.1}8 puzzle - IDA*}{7}{subsection.5.1}

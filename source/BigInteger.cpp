@@ -40,6 +40,7 @@ public:
 		char num[strlen(num0)];
 		int offset = 0;
 		len = 0;
+		sign = 1;
 		if( num0[0] == '-' ) sign = -1, ++offset;
 		else if( num0[0] == '+' ) ++offset;
 		while( num0[offset]=='0' ) ++offset;

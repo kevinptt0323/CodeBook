@@ -100,25 +100,6 @@ map<F9> :!g++ "%:t" -o "%:r.out" -Wall -Wshadow -O2 -Im && "./%:r.out"
 map<F10> :!g++ "%:t" -o "%:r.out" -Wall -Wshadow -O2 -Im
 \end{lstlisting}
 
-\subsection{.screenrc}
-\begin{lstlisting}[label=.screenrc,language=bash]
-screen -t home 0
-screen -t pA 1
-screen -t pB 2
-# Look and feel
-caption always "%{WK}Screen: %n | %h %=%t %Y/%m/%d %c:%s"
-hardstatus alwayslastline "%-Lw%{= BW}%50>%n%f* %t%{-}%+Lw%<"
-256-Color
-# Always start screen with utf8 enabled. (Alternative method is to run screen with -U parameter)
-defutf8 off
-# Left Right meta key mods
-#ALT-<> and C-Left C-Right
-bindkey \033[D prev
-bindkey \033[C next
-bindkey "^[," prev
-bindkey "^[." next
-\end{lstlisting}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \section{Data Structure}

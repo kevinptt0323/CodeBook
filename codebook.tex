@@ -25,7 +25,7 @@
 %\evensidemargin=0pt
 %\hoffset=-30pt
 
-\title{Codebook v1.4}
+\title{Codebook v1.4 Alpha}
 \author{kevinptt}
 \date{Sep 27, 2014}
 \setmainfont{Perpetua}							%主要字型
@@ -1000,9 +1000,9 @@ for(int i=2; i<MAXN; ++i) {
 }
 \end{lstlisting}
 
-\subsection{Extended Euclid’s Algorithm}
+\subsection{Extended Euclid's Algorithm}
 $ ax+by=gcd(a,b) $
-\begin{lstlisting}[label=Extended Euclid’s Algorithm]
+\begin{lstlisting}[label=Extended Euclid's Algorithm]
 int ext_gcd(int a, int b, int &x, int &y){
 	int x2;
 	if( b==0 ) {
@@ -1048,18 +1048,19 @@ for(int i=2, tmp, cntprime; i<MAXN; ++i)
 \subsection{China remainder theorem}
 $ ans \equiv  a_i\; (mod\; m_i) $
 \begin{lstlisting}[label=China remainder theorem]
-int ans, gcdn, x, y, reduce, tmp;
-for(int i=1; i<n; ++i) {
-	gcdn=ext_gcd(mi[i-1], mi[i], x, y);
-	reduce=ai[i]-ai[i-1];
-	if( reduce%gcdn!=0 ) {
-		ans=-1;
-		break;
+int china_remainder_theorem(int n, int ai[], int mi[]) {
+	int gcdn, x, y, reduce, tmp;
+	for(int i=1; i<n; ++i) {
+		gcdn=ext_gcd(mi[i-1], mi[i], x, y);
+		reduce=ai[i]-ai[i-1];
+		if( reduce%gcdn!=0 )
+			return -1;
+		tmp=mi[i]/gcdn;
+		x=(reduce/gcdn*x%tmp+tmp)%tmp;
+		ai[i] = ai[i-1] + mi[i-1]*x;
+		mi[i] = mi[i-1]*tmp;
 	}
-	tmp=mi[i]/gcdn;
-	x=(reduce/gcdn*x%tmp+tmp)%tmp;
-	ai[i] = ai[i-1] + mi[i-1]*x;
-	mi[i] = mi[i-1]*tmp;
+	return ai[n-1]%mod;
 }
 \end{lstlisting}
 

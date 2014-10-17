@@ -1230,9 +1230,32 @@ void eight_puzzle() {
 		cout << operation[solution[i]] << ' ';
 	cout << endl;
 }
- 
-
 \end{lstlisting}
-
+\subsection{recursive to stack}
+replace all variable in data into layer[lay].variable
+\begin{lstlisting}[label=recursive to stack]
+struct data {
+	parameter;
+	local variabla;
+	direction;
+} layer[10000];
+int lay=0;
+type reval;
+void go() {
+start:
+	direction = 1;
+	lay++, parameter = value;
+	goto start;
+point1:
+	variable = reval, reval = value;
+	lay--;
+	goto trans;
+trans:
+	switch (direction) {
+		case 1:
+			goto point1;
+	}
+}
+\end{lstlisting}
 \section*{The End}
 \end{document}

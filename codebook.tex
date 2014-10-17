@@ -1028,20 +1028,33 @@ int ext_gcd(int a, int b, int &x, int &y){
 
 \subsection{Möbius function}
 \begin{lstlisting}[label=Möbius function]
-memset(mobius, 0, sizeof(mobius));
-mobius[1]=1;
-for(int i=0; i<flag; ++i) mobius[prime[i]]=-1;
-for(int i=2, tmp, cntprime; i<MAXN; ++i)
-{
-	if( !~mobius[i] ) continue;
-	tmp=i, cntprime=0;
-	for(int j=0; !mobius[tmp]&&prime[j]<=tmp; ++j){
-		if( tmp%prime[j]==0 )
-			++cntprime, tmp/=prime[j];
-		if( tmp%prime[j]==0 ) {cntprime=0;break;}
-	}
-	if( cntprime && mobius[tmp] )
-		mobius[i]=mobius[tmp]*(cntprime&1?-1:1);
+int* isp;
+char fcnt[N+5];
+int mobius[N+5];
+void make_mobius(int n) {
+    isp = mobius;
+    memset(mobius, true, sizeof(mobius));
+    memset(fcnt, 0, sizeof(fcnt));
+    for(int i=2; i<=n; ++i) {
+        if( isp[i] ) {
+            fcnt[i] = 1;
+            for(int j=i+i; j<=n; j+=i) {
+                isp[j] = false;
+                if( fcnt[j]!=-1 ) fcnt[j]++;
+            }
+            if( i<=10000 )
+                for(int ii=i*i, j=ii; j<=n; j+=ii) {
+                    fcnt[j] = -1;
+                }
+        }
+    }
+    mobius[0] = 0;
+    mobius[1] = 1;
+    for(int i=2; i<=n; ++i) {
+        if( fcnt[i]==-1 ) mobius[i] = 0;
+        else if( fcnt[i]&1 ) mobius[i] = -1;
+        else mobius[i] = 1;
+    }
 }
 \end{lstlisting}
 
@@ -1061,6 +1074,29 @@ int china_remainder_theorem(int n, int ai[], int mi[]) {
 		mi[i] = mi[i-1]*tmp;
 	}
 	return ai[n-1]%mod;
+}
+\end{lstlisting}
+\subsection{Gaussian Elimination}
+\begin{lstlisting}[label=Gaussian Elimination]
+double mmap[100][100];
+void gauss(int n,int m) {
+	int k=0;
+	for(int i=0; i<n; i++)
+		for(int j=k; j<m; j++)
+			if(mmap[j][i]!=0) {
+				for(int l=i; l<=n; l++)
+					swap(mmap[k][l],mmap[j][l]);
+				for(j++; j<m; j++) {
+					if(mmap[j][i]==0)
+						continue;
+					double scale=mmap[k][i]/mmap[j][i];
+					for(int p=i+1; p<=n; p++)
+						mmap[j][p]-=mmap[k][p]*scale;
+					mmap[j][i]=0;
+				}
+				k++;
+				break;
+			}
 }
 \end{lstlisting}
 

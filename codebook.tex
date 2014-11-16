@@ -1078,20 +1078,28 @@ int china_remainder_theorem(int n, int ai[], int mi[]) {
 \end{lstlisting}
 \subsection{Gaussian Elimination}
 \begin{lstlisting}[label=Gaussian Elimination]
-double mmap[100][100];
+// default for module version, comments for double version
+// double mmap[row][column];
+const ll modn = 1000000007;
+ll mmap[row][column];
+ll inv(ll b) {
+	return (b==1)?1:inv(modn%b)*(modn-modn/b)%modn; 
+}
 void gauss(int n,int m) {
 	int k=0;
-	for(int i=0; i<n; i++)
-		for(int j=k; j<m; j++)
+	for(int i=0; i<m; i++)
+		for(int j=k; j<n; j++)
 			if(mmap[j][i]!=0) {
-				for(int l=i; l<=n; l++)
+				for(int l=i; l<m; l++)
 					swap(mmap[k][l],mmap[j][l]);
-				for(j++; j<m; j++) {
+				for(j++; j<n; j++){
 					if(mmap[j][i]==0)
 						continue;
-					double scale=mmap[k][i]/mmap[j][i];
-					for(int p=i+1; p<=n; p++)
-						mmap[j][p]-=mmap[k][p]*scale;
+					//double scale=mmap[j][i]/mmap[k][i];
+					ll scale=mmap[j][i]*inv(mmap[k][i])%modn;
+					for(int p=i+1; p<n; p++)
+						//mmap[j][p]-=mmap[k][p]*scale;
+						mmap[j][p]=(mmap[j][p]-mmap[k][p]*scale%modn+modn)%modn;
 					mmap[j][i]=0;
 				}
 				k++;
@@ -1237,19 +1245,24 @@ replace all variable in data into layer[lay].variable
 struct data {
 	parameter;
 	local variabla;
-	direction;
+	direction;		//new
 } layer[10000];
-int lay=0;
-type reval;
+int lay=0;	//new
+type reval;	//new
 void go() {
+// at the beginning
 start:
+// call recursive function	
 	direction = 1;
 	lay++, parameter = value;
 	goto start;
 point1:
-	variable = reval, reval = value;
+	variable = reval;
+// return
+	reval = value;
 	lay--;
 	goto trans;
+// at the end
 trans:
 	switch (direction) {
 		case 1:

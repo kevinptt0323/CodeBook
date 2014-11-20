@@ -72,6 +72,7 @@ morekeywords={*}								% if you want to add more keywords to the set
 \tableofcontents
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \newpage
 \section{Enviroment Settings}
 \subsection{.vimrc}
@@ -96,12 +97,21 @@ set shiftwidth=4
 set autoindent
 set smarttab
 set smartindent
+""""""" abbr
+syntax on
+set enc=utf-8 fencs=utf-8,big5
+set bs=2
+set smd nu bg=dark hls ls=2 wmnu so=5 ru cul
+set ts=4 sw=4 ai sta si
+set list lcs=tab:>\  "# a space after '\'
 imap<F9> <ESC>:w<Enter><F9>
 map<F9> :!g++ "%:t" -o "%:r.out" -Wall -Wshadow -O2 -Im && "./%:r.out"
 map<F10> :!g++ "%:t" -o "%:r.out" -Wall -Wshadow -O2 -Im
+autocmd! BufNewFile * silent! 0r ~/.vim/skel/Template.%:e
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \newpage
 \section{Computational Geometry}
 \subsection{Geometry on Plane}
@@ -160,305 +170,9 @@ node intersectionPoint(node p1, node p2, node p3, node p4){
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \newpage
 \section{Data Structure}
-\subsection{Fenwick Tree [1, size]}
-\begin{lstlisting}[label=Fenwick Tree]
-inline int lowbit(int x) { return x&-x; }
-template<class T>
-class fenwick {
-public:
-	fenwick(int __size=SIZE) {
-		size = __size+10;
-		a = new T[size], b=new T[size];
-		memset(a, 0, sizeof(T)*size);
-		memset(b, 0, sizeof(T)*size);
-	}
-	~fenwick() { delete[] a, delete[] b;}
-	inline void add(int l, int r, long long n) {
-
-	__add(a, r, r*n), __add(a, l-1, (l-1)*-n);
-		__add(b, r, n), __add(b, l-1, -n);
-	}
-	inline long long sum(int l, int r) { return __sum(r)-__sum(l-1); }
-private:
-	int size;
-	T *a, *b;
-	inline void __add(T *arr, int x, T n) { for(; x&&n&&x<size; x+=lowbit(x)) arr[x]+=n; }
-	inline T __sum(T x) { return __sum(a, x)+(__sum(b, size)-__sum(b, x))*x; }
-	inline T __sum(T *arr, int x) {
-		T res=0;
-		for(; x; x-=lowbit(x)) res+=arr[x];
-		return res;
-	}
-};
-\end{lstlisting}
-
-\subsection{Fenwick Tree 2D - [1, size][1, size]}
-\begin{lstlisting}[label=Fenwick Tree 2D]
-int tree[size+1][size+1]={{0}};
-inline int lowbit(const int &x) {return x&(-x);}
-inline void add(int x, int y, int z) {
-	for(int i; x<=n; x+=lowbit(x))
-		for(i=y; i<=n; i+=lowbit(i)) tree[x][i]+=z;
-}
-inline int query(short x, short y) {
-	int res=0;
-	for(int i; x; x-=lowbit(x))
-		for(i=y; i; i-=lowbit(i))
-			res+=tree[x][i];
-	return res;
-}
-\end{lstlisting}
-
-\newpage
-\subsection{Heap}
-\begin{lstlisting}[label=Heap]
-// max heap tree
-#define ParentIndex(i) i==0 ? 0 : ((i-1) >> 1)
-#define LeftChildIndex(i) ((i)<<1)+1
-#define RightChildIndex(i) ((i)<<1)+2 
-void BuildMaxHeap(int*, const int&);
-void MaxHeapBalance(int*, const int&, const int&);
-void MaxHeapDelete(int*, int&); 
-inline bool comp(int &a, int &b) {return a>b;}
-void BuildMaxHeap(int all[], const int &size) {
-	for(int i=(size-1) >> 1; i>=0; i--)
-		MaxHeapBalance(all, size, i);
-}
-void MaxHeapBalance(int all[], const int &size, const int &root) {
-	int aim = root, aim2;
-	while(1) {
-		aim2 = aim;
-		int L = LeftChildIndex(aim2);
-		int R = RightChildIndex(aim2);
-		if( L < size && comp( all[aim], all[L] ) ) aim = L;
-		if( R < size && comp( all[aim], all[R] ) ) aim = R;
-		if( aim != aim2 ) swap(all[aim], all[aim2]);
-		else return;
-	}
-}
-void MaxHeapAdd(int all[], int &size, const int &AddNum) {
-	all[size] = AddNum;
-	++size;
-	int P, index = size-1;
-	while( index != 0 ) {
-		P = ParentIndex(index);
-		if( comp(all[P], all[index]) ) {
-			swap(all[P], all[index]);
-			index = P;
-		}
-		else return;
-	}
-}
-void MaxHeapDelete(int all[], int &size) {
-	all[0] = all[size-1], --size;
-	MaxHeapBalance(all, size, 0);
-}
-\end{lstlisting}
-
-\newpage
-\subsection{Deap}
-\begin{lstlisting}[label=Deap]
-class deap {
-public:
-	deap() {size=1;}
-	~deap() {}
-	inline void insert(int n) {
-		arr[++size]=n;
-		int now=size;
-		if( (now&1) && arr[now-1]>arr[now] )
-			swap(arr[now-1], arr[now]), now--;
-		while( now>3 ) {
-			if( arr[now>>2<<1]>arr[now] )
-				swap(arr[now>>2<<1], arr[now]),
-				now=now>>2<<1;
-			else if( arr[(now>>2<<1)+1]<arr[now] )
-				swap(arr[(now>>2<<1)+1], arr[now]),
-				now=(now>>2<<1)+1;
-			else break;
-		}
-	}
-	inline int min() {
-		int res=arr[2];
-		swap(arr[2], arr[size--]), down(2);
-		return res;
-	}
-	inline int max() {
-		int res=arr[3];
-		swap(arr[3], arr[size--]), down(3);
-		return res;
-	}
-private:
-	int arr[1000005], size;
-	inline void down(int now) {
-		while( (now<<1)<=size ) {
-			int tmp;
-			if( (now&1)==0 ) {
-				if( arr[now]>arr[now+1] )
-					{swap(arr[now], arr[now+1]);
-					now++;continue;}
-				tmp=now;
-				if( arr[tmp]>arr[now<<1] )
-					tmp=now<<1;
-				if( (now<<1)+2<=size && arr[tmp]>arr[(now<<1)+2] ) tmp=(now<<1)+2;
-				if( tmp==now ) break;
-				else swap(arr[now], arr[tmp]),
-					now=tmp;
-			}
-			else if( (now&1)==1 ) {
-				if( arr[now]<arr[now-1] )
-					{swap(arr[now], arr[now-1]);
-					now--;continue;}
-				tmp=now;	
-				if( arr[tmp]<arr[(now<<1)-1] )
-					tmp=(now<<1)-1;
-				if( (now<<1)+1<=size && arr[tmp]<arr[(now<<1)+1] ) tmp=(now<<1)+1;
-				if( tmp==now ) break;
-				else swap(arr[now], arr[tmp]), now=tmp;
-			}
-		}
-		if( (now&1)==0 && now+1<=size && arr[now]>arr[now+1] )
-			swap(arr[now], arr[now+1]);
-		if( (now&1)==1 && arr[now]<arr[now-1] )
-			swap(arr[now], arr[now-1]);
-	}
-};
-\end{lstlisting}
-
-\subsection{zkw Segment Tree\\(range modify and query)}
-\begin{lstlisting}[label=zkw Segment Tree]
-class zkw_seg_tree { public:
-	struct node {
-		node() {add=sum=0, len=1;}
-		int len, add, sum; 
-	};
-	zkw_seg_tree(int size) { // [1,size]
-		dep=lg2(size-1)+1;
-		delta=(1<<dep)-1;
-		arr=new node[1<<(dep+1)];
-		for(int i=delta; i>0; --i) arr[i].len=arr[i+i].len<<1;
-	}
-	~zkw_seg_tree() {delete[] arr;}
-	inline void update(int l, int r, int num=1) {
-		l+=delta-1, r+=delta+1;
-		int l0=l, r0=r;
-		while( r-l>1 ) {
-			if( (l&1)^1 ) ++l, arr[l].add+=num, arr[l].sum+=arr[l].len*num;
-			if( (r&1)^0 ) --r, arr[r].add+=num, arr[r].sum+=arr[r].len*num;
-			l>>=1, r>>=1;
-		}
-		__update(l0), __update(r0);
-	}
-	inline int query(int l, int r) {
-		__down(l+delta), __down(r+delta);
-		l+=delta-1, r+=delta+1;
-		int res=0;
-		while( r-l>1 ) {
-			if( (l&1)^1 ) res+=arr[l+1].sum;
-			if( (r&1)^0 ) res+=arr[r-1].sum;
-			l>>=1, r>>=1;
-		}
-		return res;
-	}
-private:
-	node *arr;
-	int dep, delta;
-	inline int lg2(int x) {int r;for(r=-1; x; x>>=1, ++r);return r;}
-	inline void __update(int x) {
-		while( x>1 ) x>>=1, arr[x].sum=arr[x+x].sum+arr[x+x+1].sum+arr[x].len+arr[x].add;
-	}
-	inline void __down(int x) {
-		for(int i=dep, tmp; i>0; --i) {
-			tmp=x>>i;
-			arr[tmp<<1].add+=arr[tmp].add;
-			arr[(tmp<<1)+1].add+=arr[tmp].add;
-			arr[tmp<<1].sum+=arr[tmp].add*arr[tmp<<1].len;
-			arr[(tmp<<1)+1].sum+=arr[tmp].add*arr[tmp<<1].len;
-			arr[tmp].add=0;
-		}
-	}
-} segtree(N);
-\end{lstlisting}
-
-\newpage
-\subsection{劃分樹}
-\begin{lstlisting}[label=劃分樹]
-#include <iostream>
-#include <cstdio>
-#include <algorithm>
-using namespace std;
-#define N 100005
-int a[N], as[N];//原數組，排序後數組 
-int n, m;
-int sum[20][N];//紀錄第i層的1~j劃分到左子樹的元素個數(包括j)
-int tree[20][N];//紀錄第i層元素序列
-void build(int c, int l, int r) {
-	int i, mid=(l+r)>>1, lm=mid-l+1, lp=l, rp=mid+1;
-	for (i=l; i<=mid; i++)
-		if (as[i] < as[mid]) lm--;
-			//先假設左邊的(mid-l+1)個數都等于as[mid],然后把實際上小于as[mid]的減去
-	for (i = l; i <= r; i++){
-		if (i == l) sum[c][i] = 0;
-			//sum[i]表示[l, i]內有多少個數分到左邊，用DP來維護 
-		else sum[c][i] = sum[c][i-1];
-		if (tree[c][i] == as[mid]){
-			if (lm){
-				lm--;
-				sum[c][i]++;
-				tree[c+1][lp++] = tree[c][i];
-			}else
-				tree[c+1][rp++] = tree[c][i];
-		} else if (tree[c][i] < as[mid]){
-			sum[c][i]++;
-			tree[c+1][lp++] = tree[c][i];
-		} else
-			tree[c+1][rp++] = tree[c][i];
-	}
-	if (l == r)return;
-	build(c+1, l, mid);
-	build(c+1, mid+1, r);
-}
-int query(int c, int l, int r, int ql, int qr, int k){
-	int s;//[l, ql)內將被劃分到左子樹的元素數目
-	int ss;//[ql, qr]內將被劃分到左子數的元素數目
-	int mid=(l+r)>>1;
-	if (l == r)
-		return tree[c][l];
-	if (l == ql){//這裡要特殊處理！
-		s = 0;
-		ss = sum[c][qr];
-	}else{
-		s = sum[c][ql 1];
-		ss = sum[c][qr]- ;
-	} //假設要在區間[l,r]中查找第k大元素，t為當前節點，lch，rch為左右孩子，left，mid為節點t左邊界界和中間點。
-	if (k <= ss)//sum[r]-sum[l-1]>=k，查找lch[t],區間對應為[ left+sum[l-1], left+sum[r]-1 ]
-		return query(c+1, l, mid, l+s, l+s+ss-1, k);
-	else
-		//sum[r]-sum[l-1]<k,查找rch[t]，區間對應為
-		[mid+1+l-left-sum[l-1], mid+1+r-left-sum[r]]
-		return query(c+1, mid+1, r, mid-l+1+ql-s, mid-l+1+qr-s-ss, k-ss);
-}
-int main(){
-	int i, j, k;
-	while(~scanf("%d%d", &n, &m)){
-		for(i=1; i<=n; i++) {
-			scanf("%d", &a[i]);
-			tree[0][i] = as[i] = a[i];
-		}
-		sort(as+1, as+1+n);
-		build(0, 1, n);
-		while(m--){
-			scanf("%d%d%d", &i, &j, &k);
-				// i,j分別為區間起始點，k為該區間第k大的數。
-			printf("%d\n", query(0, 1, n, i, j, k));
-		}
-	}
-	return 0;
-}
-\end{lstlisting}
-
-\newpage
 \subsection{BigInteger}
 \begin{lstlisting}[label=BigInteger]
 #include <cstdio>
@@ -666,6 +380,130 @@ istream& operator >> ( istream& in, BigInteger &rhs ) {
 	in >> s;
 	rhs = s;
 	return in;
+}
+\end{lstlisting}
+
+\subsection{Fenwick Tree Range Modify [1, size]}
+\begin{lstlisting}[label=Fenwick Tree Range Modify]
+inline int lowbit(int x) { return x&-x; }
+template<class T>
+class fenwick {
+public:
+	fenwick(int __size=SIZE) {
+		size = __size+10;
+		a = new T[size], b=new T[size];
+		memset(a, 0, sizeof(T)*size);
+		memset(b, 0, sizeof(T)*size);
+	}
+	~fenwick() { delete[] a, delete[] b;}
+	inline void add(int l, int r, long long n) {
+		__add(a, r, r*n), __add(a, l-1, (l-1)*-n);
+		__add(b, r, n), __add(b, l-1, -n);
+	}
+	inline long long sum(int l, int r) { return __sum(r)-__sum(l-1); }
+private:
+	int size;
+	T *a, *b;
+	inline void __add(T *arr, int x, T n) { for(; x&&n&&x<size; x+=lowbit(x)) arr[x]+=n; }
+	inline T __sum(T x) { return __sum(a, x)+(__sum(b, size)-__sum(b, x))*x; }
+	inline T __sum(T *arr, int x) {
+		T res=0;
+		for(; x; x-=lowbit(x)) res+=arr[x];
+		return res;
+	}
+};
+\end{lstlisting}
+
+\subsection{Fenwick Tree 2D - [1, size][1, size]}
+\begin{lstlisting}[label=Fenwick Tree 2D]
+int tree[size+1][size+1]={{0}};
+inline int lowbit(const int &x) {return x&(-x);}
+inline void add(int x, int y, int z) {
+	for(int i; x<=n; x+=lowbit(x))
+		for(i=y; i<=n; i+=lowbit(i)) tree[x][i]+=z;
+}
+inline int query(short x, short y) {
+	int res=0;
+	for(int i; x; x-=lowbit(x))
+		for(i=y; i; i-=lowbit(i))
+			res+=tree[x][i];
+	return res;
+}
+\end{lstlisting}
+
+\subsection{劃分樹}
+\begin{lstlisting}[label=劃分樹]
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+#define N 100005
+int a[N], as[N];//原數組，排序後數組 
+int n, m;
+int sum[20][N];//紀錄第i層的1~j劃分到左子樹的元素個數(包括j)
+int tree[20][N];//紀錄第i層元素序列
+void build(int c, int l, int r) {
+	int i, mid=(l+r)>>1, lm=mid-l+1, lp=l, rp=mid+1;
+	for (i=l; i<=mid; i++)
+		if (as[i] < as[mid]) lm--;
+			//先假設左邊的(mid-l+1)個數都等于as[mid],然后把實際上小于as[mid]的減去
+	for (i = l; i <= r; i++){
+		if (i == l) sum[c][i] = 0;
+			//sum[i]表示[l, i]內有多少個數分到左邊，用DP來維護 
+		else sum[c][i] = sum[c][i-1];
+		if (tree[c][i] == as[mid]){
+			if (lm){
+				lm--;
+				sum[c][i]++;
+				tree[c+1][lp++] = tree[c][i];
+			}else
+				tree[c+1][rp++] = tree[c][i];
+		} else if (tree[c][i] < as[mid]){
+			sum[c][i]++;
+			tree[c+1][lp++] = tree[c][i];
+		} else
+			tree[c+1][rp++] = tree[c][i];
+	}
+	if (l == r)return;
+	build(c+1, l, mid);
+	build(c+1, mid+1, r);
+}
+int query(int c, int l, int r, int ql, int qr, int k){
+	int s;//[l, ql)內將被劃分到左子樹的元素數目
+	int ss;//[ql, qr]內將被劃分到左子數的元素數目
+	int mid=(l+r)>>1;
+	if (l == r)
+		return tree[c][l];
+	if (l == ql){//這裡要特殊處理！
+		s = 0;
+		ss = sum[c][qr];
+	}else{
+		s = sum[c][ql 1];
+		ss = sum[c][qr]- ;
+	} //假設要在區間[l,r]中查找第k大元素，t為當前節點，lch，rch為左右孩子，left，mid為節點t左邊界界和中間點。
+	if (k <= ss)//sum[r]-sum[l-1]>=k，查找lch[t],區間對應為[ left+sum[l-1], left+sum[r]-1 ]
+		return query(c+1, l, mid, l+s, l+s+ss-1, k);
+	else
+		//sum[r]-sum[l-1]<k,查找rch[t]，區間對應為
+		[mid+1+l-left-sum[l-1], mid+1+r-left-sum[r]]
+		return query(c+1, mid+1, r, mid-l+1+ql-s, mid-l+1+qr-s-ss, k-ss);
+}
+int main(){
+	int i, j, k;
+	while(~scanf("%d%d", &n, &m)){
+		for(i=1; i<=n; i++) {
+			scanf("%d", &a[i]);
+			tree[0][i] = as[i] = a[i];
+		}
+		sort(as+1, as+1+n);
+		build(0, 1, n);
+		while(m--){
+			scanf("%d%d%d", &i, &j, &k);
+				// i,j分別為區間起始點，k為該區間第k大的數。
+			printf("%d\n", query(0, 1, n, i, j, k));
+		}
+	}
+	return 0;
 }
 \end{lstlisting}
 
@@ -885,153 +723,28 @@ int main(){
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\section{String}
-\subsection{KMP}
-\begin{lstlisting}[label=KMP]
-int KMP(char pat[5005], char str[5005]) {
-	if( strlen(pat)>strlen(str) ) return -1;
-	int failure[5005];
-	int len=strlen(pat);
-	for(int i=1, j=failure[0]=-1; i<len; ++i) {
-		while( j>=0 && pat[j+1]^pat[i] ) j=failure[j];
-		if( pat[j+1]==pat[i] ) ++j;
-		failure[i]=j;
-	}
-	for(int i=0, j=-1; str[i]; ++i) {
-		while( j>=0 && str[i]^pat[j+1] ) j=failure[j];
-		if( str[i]==pat[j+1] ) ++j;
-		if( j==len-1 ) {
-			return i-len+1; // rec this!!
-			j=failure[j];
-		}
-	}
-	return -1;
-}
-\end{lstlisting}
 
-\subsection{Z Algorithm}
-\begin{lstlisting}[label=Z Algorithm]
-void Z(char G[], int z[]){
-	int len = strlen(G);
-	z[0] = len;
-	int L = 0, R = 1;
-	for ( int i = 1 ; i < len ; i++ ) {
-		if ( i >= R || z[i-L] >= R-i ) {
-			int x = (i>=R) ? i : R;
-			while ( x < len && G[x] == G[x-i] )  
-				x++;
-			z[i] = x - i;
-			if ( x > i )  L = i , R = x;	
-		}		
-		else z[i] = z[i-L];
-	}
-}
-\end{lstlisting}
-
-\newpage
-\subsection{Suffix Array}
-\begin{lstlisting}[label=Suffix Array]
-int rank[LEN], sa[LEN];
-int height[LEN];
-int y[LEN], cnt[LEN], rr[2][LEN];
-inline bool same(int *rank, int a, int b, int l) { return rank[a]==rank[b]&&rank[a+l]==rank[b+l]; }
-void sa2(char str[], int n, int m) {
-	printf("%s!! %d %d\n", str, n, m);
-	int *rank1=rr[0], *rank2=rr[1];
-	MSET(rr[1], 0);
-	int i, p;
-	for(i=0; i<m; ++i) cnt[i]=0;
-	for(i=0; i<n; ++i) rank2[i]=str[i], cnt[rank2[i]]++;
-	for(i=1; i<m; ++i) cnt[i]+=cnt[i-1];
-	for(i=n-1; i>=0; --i) sa[--cnt[rank2[i]]]=i;
-	for(int j=1; p<n; j<<=1, m=p) {
-		// 表示用第二個key(rank2)排序後 從 y[i] 開始的後綴排第i名
-		for(p=0, i=n-j; i<n; ++i) y[p++]=i;
-		for(i=0; i<n; ++i) if( sa[i]>=j ) y[p++]=sa[i]-j;
-		for(i=0; i<m; ++i) cnt[i]=0;
-		for(i=0; i<n; ++i) cnt[ rank2[y[i]] ] ++;
-		for(i=1; i<m; ++i) cnt[i]+=cnt[i-1];
-		for(i=n-1; i>=0; --i) sa[ --cnt[ rank2[y[i]] ] ]=y[i];
-		for(p=i=1, rank1[sa[0]]=0; i<n; ++i)
-			rank1[sa[i]]=same(rank2, sa[i], sa[i-1], j)?p-1:p++;
-		std::swap(rank1, rank2);
-	}
-	for(int i=0; i<n; ++i) rank[i]=rank2[i];
-}
-void make_height(char str[]) {
-	int len=strlen(str);
-	height[0]=0;
-	for(int i=0, j=0; i<len; ++i, j=height[rank[i-1]]-1) {
-		if( rank[i]==1 ) continue;
-		if( j<0 ) j=0;
-		while( i+j<len && sa[rank[i]-1]+j<len &&
-			str[i+j]==str[sa[rank[i]-1]+j] ) ++j;
-		height[rank[i]]=j;
-	}
-}
-int main() {
-	char str[LEN];
-	scanf("%s", str);
-	int len = strlen(str);
-	sa2(str, len+1, 256);
-	make_height(str);
-	for(int i=1; i<=len; ++i) printf("%d %d %s\n", i, height[i], str+sa[i]);
-}
-\end{lstlisting}
-
-\newpage
-\subsection{Longest Palindromic Substring}
-\begin{lstlisting}[label=Longest Palindromic Substring]
-char t[1001];		// 要處理的字串
-cahr s[1001 * 2];	// 中間插入特殊字元的t。
-int Z[1001 * 2], L, R;	// Gusfield's Algorithm
-// 由a往左、由b往右，對稱地作字元比對。
-int match(int a, int b) {
-	int i = 0;
-	while (a-i>=0 && b+i<N && s[a-i] == s[b+i]) i++;
-	return i;
-}
-void longest_palindromic_substring()
-{
-	int N = strlen(t);
-	// 在t中插入特殊字元，存放到s。
-	memset(s, '.', N*2+1);
-	for (int i=0; i<N; ++i) s[i*2+1] = t[i];
-	N = N*2+1;
-	// modified Gusfield's lgorithm
-	Z[0] = 1;
-	L = R = 0;
-	for (int i=1; i<N; ++i) {
-		int ii = L - (i - L);   // i的映射位置
-		int n = R + 1 - i;
-		if (i > R) {
-			Z[i] = match(i, i);
-			L = i;
-			R = i + Z[i] - 1;
-		}
-		else if (Z[ii] == n) {
-			Z[i] = n + match(i-n, i+n);
-			L = i;
-			R = i + Z[i] - 1;
-		}
-		else Z[i] = min(Z[ii], n);
-	}
-	// 尋找最長迴文子字串的長度。
-	int n = 0, p = 0;
-	for (int i=0; i<N; ++i)
-		if (Z[i] > n) n = Z[p = i];
-	// 記得去掉特殊字元。
-	cout << "最長迴文子字串的長度是" << (n-1) / 2;
-	// 印出最長迴文子字串，記得別印特殊字元。
-	for (int i=p-Z[p]+1; i<=p+Z[p]-1; ++i)
-		if (i & 1) cout << s[i];
-}
-\end{lstlisting}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \section{Math}
+\subsection{China remainder theorem}
+$ ans \equiv  a_i\; (mod\; m_i) $
+\begin{lstlisting}[label=China remainder theorem]
+int china_remainder_theorem(int n, int ai[], int mi[]) {
+	int gcdn, x, y, reduce, tmp;
+	for(int i=1; i<n; ++i) {
+		gcdn=ext_gcd(mi[i-1], mi[i], x, y);
+		reduce=ai[i]-ai[i-1];
+		if( reduce%gcdn!=0 )
+			return -1;
+		tmp=mi[i]/gcdn;
+		x=(reduce/gcdn*x%tmp+tmp)%tmp;
+		ai[i] = ai[i-1] + mi[i-1]*x;
+		mi[i] = mi[i-1]*tmp;
+	}
+	return ai[n-1]%mod;
+}
+\end{lstlisting}
+
 \subsection{Euler's phi function O(n)}
 \begin{enumerate}[1.]
 \item $gcd(x,y)=d \Rightarrow \phi(xy) = \frac{\phi(x) \phi(y)}{\phi(d)}$
@@ -1084,6 +797,38 @@ int ext_gcd(int a, int b, int &x, int &y){
 }
 \end{lstlisting}
 
+\subsection{Gaussian Elimination}
+\begin{lstlisting}[label=Gaussian Elimination]
+// default for module version, comments for double version
+// double mmap[row][column];
+const ll modn = 1000000007;
+ll mmap[row][column];
+ll inv(ll b) {
+	return (b==1)?1:inv(modn%b)*(modn-modn/b)%modn; 
+}
+void gauss(int n,int m) {
+	int k=0;
+	for(int i=0; i<m; i++)
+		for(int j=k; j<n; j++)
+			if(mmap[j][i]!=0) {
+				for(int l=i; l<m; l++)
+					swap(mmap[k][l],mmap[j][l]);
+				for(j++; j<n; j++){
+					if(mmap[j][i]==0)
+						continue;
+					//double scale=mmap[j][i]/mmap[k][i];
+					ll scale=mmap[j][i]*inv(mmap[k][i])%modn;
+					for(int p=i+1; p<n; p++)
+						//mmap[j][p]-=mmap[k][p]*scale;
+						mmap[j][p]=(mmap[j][p]-mmap[k][p]*scale%modn+modn)%modn;
+					mmap[j][i]=0;
+				}
+				k++;
+				break;
+			}
+}
+\end{lstlisting}
+
 \subsection{Miller Rabin}
 \begin{lstlisting}[label=Miller Rabin]
 ll mul(ll a, ll b, ll n) { // a*b%n
@@ -1121,6 +866,7 @@ bool isprime(ll n) {
 	return true;
 }
 \end{lstlisting}
+
 \subsection{Möbius function}
 \begin{lstlisting}[label=Möbius function]
 int* isp;
@@ -1153,53 +899,147 @@ void make_mobius(int n) {
 }
 \end{lstlisting}
 
-\subsection{China remainder theorem}
-$ ans \equiv  a_i\; (mod\; m_i) $
-\begin{lstlisting}[label=China remainder theorem]
-int china_remainder_theorem(int n, int ai[], int mi[]) {
-	int gcdn, x, y, reduce, tmp;
-	for(int i=1; i<n; ++i) {
-		gcdn=ext_gcd(mi[i-1], mi[i], x, y);
-		reduce=ai[i]-ai[i-1];
-		if( reduce%gcdn!=0 )
-			return -1;
-		tmp=mi[i]/gcdn;
-		x=(reduce/gcdn*x%tmp+tmp)%tmp;
-		ai[i] = ai[i-1] + mi[i-1]*x;
-		mi[i] = mi[i-1]*tmp;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\section{String}
+\subsection{KMP}
+\begin{lstlisting}[label=KMP]
+int KMP(char pat[5005], char str[5005]) {
+	if( strlen(pat)>strlen(str) ) return -1;
+	int failure[5005];
+	int len=strlen(pat);
+	for(int i=1, j=failure[0]=-1; i<len; ++i) {
+		while( j>=0 && pat[j+1]^pat[i] ) j=failure[j];
+		if( pat[j+1]==pat[i] ) ++j;
+		failure[i]=j;
 	}
-	return ai[n-1]%mod;
+	for(int i=0, j=-1; str[i]; ++i) {
+		while( j>=0 && str[i]^pat[j+1] ) j=failure[j];
+		if( str[i]==pat[j+1] ) ++j;
+		if( j==len-1 ) {
+			return i-len+1; // rec this!!
+			j=failure[j];
+		}
+	}
+	return -1;
 }
 \end{lstlisting}
-\subsection{Gaussian Elimination}
-\begin{lstlisting}[label=Gaussian Elimination]
-// default for module version, comments for double version
-// double mmap[row][column];
-const ll modn = 1000000007;
-ll mmap[row][column];
-ll inv(ll b) {
-	return (b==1)?1:inv(modn%b)*(modn-modn/b)%modn; 
+
+\subsection{Longest Palindromic Substring}
+\begin{lstlisting}[label=Longest Palindromic Substring]
+char t[1001];		// 要處理的字串
+cahr s[1001 * 2];	// 中間插入特殊字元的t。
+int Z[1001 * 2], L, R;	// Gusfield's Algorithm
+// 由a往左、由b往右，對稱地作字元比對。
+int match(int a, int b) {
+	int i = 0;
+	while (a-i>=0 && b+i<N && s[a-i] == s[b+i]) i++;
+	return i;
 }
-void gauss(int n,int m) {
-	int k=0;
-	for(int i=0; i<m; i++)
-		for(int j=k; j<n; j++)
-			if(mmap[j][i]!=0) {
-				for(int l=i; l<m; l++)
-					swap(mmap[k][l],mmap[j][l]);
-				for(j++; j<n; j++){
-					if(mmap[j][i]==0)
-						continue;
-					//double scale=mmap[j][i]/mmap[k][i];
-					ll scale=mmap[j][i]*inv(mmap[k][i])%modn;
-					for(int p=i+1; p<n; p++)
-						//mmap[j][p]-=mmap[k][p]*scale;
-						mmap[j][p]=(mmap[j][p]-mmap[k][p]*scale%modn+modn)%modn;
-					mmap[j][i]=0;
-				}
-				k++;
-				break;
-			}
+void longest_palindromic_substring()
+{
+	int N = strlen(t);
+	// 在t中插入特殊字元，存放到s。
+	memset(s, '.', N*2+1);
+	for (int i=0; i<N; ++i) s[i*2+1] = t[i];
+	N = N*2+1;
+	// modified Gusfield's lgorithm
+	Z[0] = 1;
+	L = R = 0;
+	for (int i=1; i<N; ++i) {
+		int ii = L - (i - L);   // i的映射位置
+		int n = R + 1 - i;
+		if (i > R) {
+			Z[i] = match(i, i);
+			L = i;
+			R = i + Z[i] - 1;
+		}
+		else if (Z[ii] == n) {
+			Z[i] = n + match(i-n, i+n);
+			L = i;
+			R = i + Z[i] - 1;
+		}
+		else Z[i] = min(Z[ii], n);
+	}
+	// 尋找最長迴文子字串的長度。
+	int n = 0, p = 0;
+	for (int i=0; i<N; ++i)
+		if (Z[i] > n) n = Z[p = i];
+	// 記得去掉特殊字元。
+	cout << "最長迴文子字串的長度是" << (n-1) / 2;
+	// 印出最長迴文子字串，記得別印特殊字元。
+	for (int i=p-Z[p]+1; i<=p+Z[p]-1; ++i)
+		if (i & 1) cout << s[i];
+}
+\end{lstlisting}
+
+\subsection{Suffix Array}
+\begin{lstlisting}[label=Suffix Array]
+int rank[LEN], sa[LEN];
+int height[LEN];
+int y[LEN], cnt[LEN], rr[2][LEN];
+inline bool same(int *rank, int a, int b, int l) { return rank[a]==rank[b]&&rank[a+l]==rank[b+l]; }
+void sa2(char str[], int n, int m) {
+	printf("%s!! %d %d\n", str, n, m);
+	int *rank1=rr[0], *rank2=rr[1];
+	MSET(rr[1], 0);
+	int i, p;
+	for(i=0; i<m; ++i) cnt[i]=0;
+	for(i=0; i<n; ++i) rank2[i]=str[i], cnt[rank2[i]]++;
+	for(i=1; i<m; ++i) cnt[i]+=cnt[i-1];
+	for(i=n-1; i>=0; --i) sa[--cnt[rank2[i]]]=i;
+	for(int j=1; p<n; j<<=1, m=p) {
+		// 表示用第二個key(rank2)排序後 從 y[i] 開始的後綴排第i名
+		for(p=0, i=n-j; i<n; ++i) y[p++]=i;
+		for(i=0; i<n; ++i) if( sa[i]>=j ) y[p++]=sa[i]-j;
+		for(i=0; i<m; ++i) cnt[i]=0;
+		for(i=0; i<n; ++i) cnt[ rank2[y[i]] ] ++;
+		for(i=1; i<m; ++i) cnt[i]+=cnt[i-1];
+		for(i=n-1; i>=0; --i) sa[ --cnt[ rank2[y[i]] ] ]=y[i];
+		for(p=i=1, rank1[sa[0]]=0; i<n; ++i)
+			rank1[sa[i]]=same(rank2, sa[i], sa[i-1], j)?p-1:p++;
+		std::swap(rank1, rank2);
+	}
+	for(int i=0; i<n; ++i) rank[i]=rank2[i];
+}
+void make_height(char str[]) {
+	int len=strlen(str);
+	height[0]=0;
+	for(int i=0, j=0; i<len; ++i, j=height[rank[i-1]]-1) {
+		if( rank[i]==1 ) continue;
+		if( j<0 ) j=0;
+		while( i+j<len && sa[rank[i]-1]+j<len &&
+			str[i+j]==str[sa[rank[i]-1]+j] ) ++j;
+		height[rank[i]]=j;
+	}
+}
+int main() {
+	char str[LEN];
+	scanf("%s", str);
+	int len = strlen(str);
+	sa2(str, len+1, 256);
+	make_height(str);
+	for(int i=1; i<=len; ++i) printf("%d %d %s\n", i, height[i], str+sa[i]);
+}
+\end{lstlisting}
+
+\subsection{Z Algorithm}
+\begin{lstlisting}[label=Z Algorithm]
+void Z(char G[], int z[]){
+	int len = strlen(G);
+	z[0] = len;
+	int L = 0, R = 1;
+	for ( int i = 1 ; i < len ; i++ ) {
+		if ( i >= R || z[i-L] >= R-i ) {
+			int x = (i>=R) ? i : R;
+			while ( x < len && G[x] == G[x-i] )  
+				x++;
+			z[i] = x - i;
+			if ( x > i )  L = i , R = x;	
+		}		
+		else z[i] = z[i-L];
+	}
 }
 \end{lstlisting}
 

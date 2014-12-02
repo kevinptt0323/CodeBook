@@ -431,6 +431,253 @@ inline int query(short x, short y) {
 }
 \end{lstlisting}
 
+\subsection{Splay Tree}
+\begin{lstlisting}[label=Splay Tree]
+template<class T>
+struct TNode {
+	TNode<T> *c[2], *fa;
+	T val, inc, sum;
+	int sz;
+	void down() {
+		val += inc;
+		if( lc->fa ) lc->inc += inc;
+		if( rc->fa ) rc->inc += inc;
+		inc = 0;
+	}
+	void up() {
+		sz = lc->sz + rc->sz + 1;
+		sum = val;
+		if( lc->fa ) sum += lc->sum + lc->inc*lc->sz;
+		if( rc->fa ) sum += rc->sum + rc->inc*rc->sz;
+	}
+};
+template<class T>
+class SplayTree {
+public:
+	void init(const int& n) {
+		null = &node[0];
+		null->fa = NULL;
+		null->val = null->inc = null->sum = null->sz = 0;
+		ncnt = 0;
+		root = newnode(-1, null);
+		root->rc = newnode(-1, root);
+		root->rc->lc = build(1, n, root->rc);
+		root->rc->up(), root->up();
+	}
+	void update(int l, int r, T val) {
+		RotateTo(l-1, null);
+		RotateTo(r+1, root);
+		root->rc->lc->inc += val;
+		root->rc->lc->up();
+	}
+	ll query(int l, int r) {
+		if( l>r ) swap(l, r);
+		RotateTo(l-1, null);
+		RotateTo(r+1, root);
+		TNode<T> *now = root->rc->lc;
+		now->up();
+		return now->sum + now->inc*now->sz;
+	}
+private:
+	TNode<T> *root, *null;
+	TNode<T> node[MAXN];
+	int ncnt;
+	TNode<T>* newnode(T val, TNode<T> *fa) {
+		TNode<T> *x = &node[++ncnt];
+		x->lc = x->rc = null;
+		x->fa = fa;
+		x->val = x->sum = val, x->inc = 0, x->sz = 1;
+		return x;
+	}
+	TNode<T>* build(int l, int r, TNode<T> *fa) {
+		if( l>r ) return null;
+		int md = (l+r)>>1;
+		TNode<T> *now = newnode(all[md], fa);
+		now->lc = build(l, md-1, now);
+		now->rc = build(md+1, r, now);
+		now->up();
+		return now;
+	}
+	void RotateTo(int x, TNode<T> *aim) {
+		// find k-th element
+		TNode<T> *now = root;
+		while( now->lc->sz != x ) {
+			if( now->lc->sz > x ) now = now->lc;
+			else x -= now->lc->sz+1, now = now->rc;
+		}
+		splay(now, aim);
+	}
+	void splay(TNode<T> *now, TNode<T> *aim) {
+		// make now become aim's child
+		TNode<T> *fa, *fafa;
+		while( now->fa != aim ) {
+			if( now->fa->fa == aim ) Rotate(now, now->fa->lc==now);
+			else {
+				fa = now->fa, fafa = fa->fa;
+				int pos = ( fafa->c[1] == fa );
+				if( fa->c[pos] == now ) Rotate(fa, !pos);
+				else Rotate(now, pos);
+				Rotate(now, !pos);
+			}
+		}
+		now->up();
+		if( aim == null ) root = now;
+	}
+	void Rotate(TNode<T> *now, int fl) {
+		// fl : 0 - L-Rotate
+		//      1 - R-Rotate
+		TNode<T> *fa = now->fa;
+		now->down();
+		fa->c[!fl] = now->c[fl];
+		if( now->c[fl] != null ) now->c[fl]->fa = fa;
+		now->fa = fa->fa;
+		if( fa->fa != null ) fa->fa->c[ fa->fa->c[1]==fa ] = now;
+		now->c[fl] = fa, fa->fa = now;
+		now->inc = fa->inc, fa->inc = 0;
+		fa->up();
+	}
+};
+SplayTree<ll> tree;
+\end{lstlisting}
+
+\subsection{Treap}
+\begin{lstlisting}[label=Treap]
+struct Node {
+	Node *l,*r;
+	int v,delta,rev,size,minx,w;
+	void up() {
+		minx = v;
+		size = 1;
+		if(l) size += l->size, minx = min(minx, l->minx);
+		if(r) size += r->size, minx = min(minx, r->minx);
+	}
+	void down() {
+		if(delta) {
+			if(l) l->delta += delta, l->v += delta, l->minx += delta;
+			if(r) r->delta += delta, r->v += delta, r->minx += delta;
+			delta = 0;
+		}
+		if(rev) {
+			swap(l,r);
+			if(l) l->rev ^= 1;
+			if(r) r->rev ^= 1;
+			rev = 0;
+		}
+	}
+}*root = NULL, *list = NULL;
+inline int sz(Node *o) { return o ? o->size : 0; }
+int ran() {
+	static int ranx = 123456789;
+	ranx += (ranx<<2) + 1;
+	return ranx;
+}
+void New_node(Node *&o, int val) {
+	if(list == NULL) {
+		Node *tt = new Node[100];
+		for(int i = 0; i < 100; i ++) {
+			tt[i].w = ran();
+			tt[i].r = list;
+			list = tt + i;
+		}
+	}
+	o = list;
+	list = o->r;
+	o->l = o->r = NULL;
+	o->v = o->minx = val;
+	o->size = 1;
+	o->delta = o->rev = 0;
+}
+void Reuse(Node *o) { if(o) { o->r = list; list = o; } }
+void cut(Node *o, Node *&p, Node *&q, int num) {
+	if(num == 0) {
+		p = NULL; q = o;
+	} else if(num == sz(o)) {
+		p = o; q = NULL;
+	} else {
+		o->down();
+		if(num <= sz(o->l)) {
+			q = o;
+			cut(o->l,p,q->l,num);
+			q->up();
+		} else {
+			p = o;
+			cut(o->r,p->r,q,num-sz(o->l)-1);
+			p->up();
+		}
+	}
+}
+void merge(Node *&o, Node *p, Node *q) {
+	if(!p || !q) {
+		o = p ? p : q;
+	} else {
+		if(p->w > q->w) {
+			p->down();
+			o = p;
+			merge(o->r,p->r,q);
+		} else {
+			q->down();
+			o = q;
+			merge(o->l,p,q->l);
+		}
+		o->up();
+	}
+}
+void insert(Node *&o, int pos, int val) {
+	if(o == NULL) {
+		New_node(o,val);
+	} else {
+		Node *l , *r , *n;
+		New_node( n , val );
+		cut ( o , l , r , pos );
+		merge( l , l , n );
+		merge( root , l , r );
+	}
+}
+void add(int l, int r, int val) {
+	Node *a, *b, *c;
+	cut(root,a,b,l-1);
+	cut(b,b,c,r-l+1);
+	b->v += val;
+	b->minx += val;
+	b->delta += val;
+	merge(a,a,b);
+	merge(root,a,c);
+}
+void remove(int pos) {
+	Node *a, *b, *c;
+	cut(root,a,b,pos-1);
+	cut(b,b,c,1);
+	merge(root,a,c);
+	Reuse(b);
+}
+int query(int l, int r) {
+	Node *a, *b, *c;
+	cut(root,a,b,l-1);
+	cut(b,b,c,r-l+1);
+	int ret = b->minx;
+	merge(a,a,b);
+	merge(root,a,c);
+	return ret;
+}
+void reverse(int l, int r) {
+	Node *a, *b, *c;
+	cut(root,a,b,l-1);
+	cut(b,b,c,r-l+1);
+	b->rev ^= 1;
+	merge(a,a,b);
+	merge(root,a,c);
+}
+void revolve(int l, int m, int r) {
+	Node *a, *b, *c, *d;
+	cut(root,a,b,l-1);
+	cut(b,b,c,m-l+1);
+	cut(c,c,d,r-m);
+	merge(a,a,c);
+	merge(a,a,b);
+	merge(root,a,d);
+}
+\end{lstlisting}
+
 \subsection{劃分樹}
 \begin{lstlisting}[label=劃分樹]
 #include <iostream>
@@ -873,29 +1120,29 @@ int* isp;
 char fcnt[N+5];
 int mobius[N+5];
 void make_mobius(int n) {
-    isp = mobius;
-    memset(mobius, true, sizeof(mobius));
-    memset(fcnt, 0, sizeof(fcnt));
-    for(int i=2; i<=n; ++i) {
-        if( isp[i] ) {
-            fcnt[i] = 1;
-            for(int j=i+i; j<=n; j+=i) {
-                isp[j] = false;
-                if( fcnt[j]!=-1 ) fcnt[j]++;
-            }
-            if( i<=10000 )
-                for(int ii=i*i, j=ii; j<=n; j+=ii) {
-                    fcnt[j] = -1;
-                }
-        }
-    }
-    mobius[0] = 0;
-    mobius[1] = 1;
-    for(int i=2; i<=n; ++i) {
-        if( fcnt[i]==-1 ) mobius[i] = 0;
-        else if( fcnt[i]&1 ) mobius[i] = -1;
-        else mobius[i] = 1;
-    }
+	isp = mobius;
+	memset(mobius, true, sizeof(mobius));
+	memset(fcnt, 0, sizeof(fcnt));
+	for(int i=2; i<=n; ++i) {
+		if( isp[i] ) {
+			fcnt[i] = 1;
+			for(int j=i+i; j<=n; j+=i) {
+				isp[j] = false;
+				if( fcnt[j]!=-1 ) fcnt[j]++;
+			}
+			if( i<=10000 )
+				for(int ii=i*i, j=ii; j<=n; j+=ii) {
+					fcnt[j] = -1;
+				}
+		}
+	}
+	mobius[0] = 0;
+	mobius[1] = 1;
+	for(int i=2; i<=n; ++i) {
+		if( fcnt[i]==-1 ) mobius[i] = 0;
+		else if( fcnt[i]&1 ) mobius[i] = -1;
+		else mobius[i] = 1;
+	}
 }
 \end{lstlisting}
 

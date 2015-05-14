@@ -1,82 +1,69 @@
-#define MAXSLEN 5000
-#define MAXNUM 5000
-#define MAXPLEN 50
-class Node {
+#include <queue>
+using namespace std;
+
+template<int NodeSZ>
+class AhoCorasick {
 public:
-	Node *fail; // transition when undefined next character encountered
-	map<char,Node*> _next; // transition to next node corresponding to a character
-	bool marked; // whether the prefix is "matched" sometime
-	Node() { fail=NULL; marked=0; }
-	~Node() {
-		for(map<char,Node*>::iterator it=_next.begin();it!=_next.end();it++)
-		delete it->second;
+	AhoCorasick() { clear(); }
+	void clear() {
+		all[0] = Node();
+		ncnt = 1;
 	}
-	Node* build(char ch) {
-		if(_next.find(ch)==_next.end()) _next[ch]=new Node;
-		return _next[ch];
+	void insert(char *s) {
+		Node *curr = &all[0], *next;
+		for(int i=0; s[i]; ++i) {
+			next = curr->next[idx(s[i])];
+			if( next == NULL )
+				next = &all[ncnt], all[ncnt++] = Node();
+			curr = curr->next[idx(s[i])] = next;
+		}
+		curr->val++;
 	}
-	Node* next(char ch) {
-		if(_next.find(ch)==_next.end()) return NULL;
-		else return _next[ch];
-	}
-};
-int pn; // number of pattern
-char s[MAXSLEN]; // string to be matched
-char p[MAXNUM][MAXPLEN]; // patterns
-Node* pre[MAXNUM]; // its corresponding node on ac-prefix-tree
-int ql,qr;
-Node* que[MAXNUM*MAXPLEN];
-bool appear[MAXNUM];
-inline Node* construct(Node *v,char *p) { // append a prefix to the tree
-	while(*p) { v=v->build(*p); p++; }
-	return v;
-}
-inline void construct_all(Node *ac) { // construct the prefix tree
-	for(int i=0;i<pn;i++) pre[i]=construct(ac,p[i]);
-}
-inline void find_fail(Node *ac) { // find fail function
-	Node *v,*u,*f;
-	char ch;
-	map<char,Node*>::iterator it;
-	ql=qr=0;
-	ac->fail=ac;
-	for(it=ac->_next.begin();it!=ac->_next.end();it++) {
-		que[qr]=it->second;
-		que[qr]->fail=ac;
-		qr++;
-	}
-	while(ql<qr) {
-		v=que[ql++];
-		for(it=v->_next.begin();it!=v->_next.end();it++) {
-			ch=it->first; u=it->second;
-			que[qr++]=u;
-			f=v->fail;
-			while(f!=ac&&f->next(ch)==NULL) f=f->fail;
-			if(f->next(ch)) u->fail=f->next(ch);
-			else u->fail=ac;
+	void build() {
+		queue<Node*> qq;
+		qq.push(&all[0]);
+		while( !qq.empty() ) {
+			Node *curr = qq.front(), *fail;
+			qq.pop();
+			for(int i=0; i<NodeSZ; ++i) {
+				if( !curr->next[i] ) continue;
+				qq.push(curr->next[i]);
+				fail = curr->fail;
+				while( fail && !fail->next[i] )
+					fail = fail->fail;
+				curr->next[i]->fail = fail ? fail->next[i] : &all[0];
+			}
 		}
 	}
-}
-inline void trace(Node *v) { // marked all contained prefixes
-	while(!v->marked) { v->marked=1; v=v->fail; }
-}
-inline void ac_match(Node *ac,char *s) { // match a string s
-	Node *v=ac;
-	while(*s) {
-		while(v!=ac&&v->next(*s)==NULL) v=v->fail;
-		if(v->next(*s)!=NULL) v=v->next(*s);
-		trace(v);
-		s++;
+	int count(char *s) {
+		build();
+		int cnt = 0;
+		Node *curr = &all[0], *tmp;
+		for(int i=0, ch; s[i]; ++i) {
+			ch = idx(s[i]);
+			while( curr && !curr->next[ch] )
+				curr = curr->fail;
+			curr = curr ? curr->next[ch] : all[0].next[ch];
+			tmp = curr;
+			while( tmp && tmp->val ) {
+				cnt += tmp->val;
+				tmp->val = 0;
+				tmp = tmp->fail;
+			}
+		}
+		return cnt;
 	}
-}
-inline void aho_corasick() {
-	Node ac;
-	construct_all(&ac);
-	find_fail(&ac);
-	ac_match(&ac,s);
-	for(int i=0;i<pn;i++) {
-		if(pre[i]->marked) printf("prefix %d is matched\n",i);
-		else printf("prefix %d not matched\n",i);
-	}
-}
-
+	
+private:
+	struct Node {
+		Node() : val(0), fail(NULL) {
+			for(int i=0; i<NodeSZ; ++i) next[i] = NULL;
+		}
+		int val;
+		Node *fail, *next[NodeSZ];
+	};
+	Node all[250005];
+	int ncnt;
+	inline int idx(char c) { return c-'a'; }
+};
+AhoCorasick<26> AC;

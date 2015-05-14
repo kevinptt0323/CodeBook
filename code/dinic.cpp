@@ -1,4 +1,4 @@
-class Flow{
+class Flow {
 public:
 	Flow(int _ncnt) :ncnt(_ncnt), ecnt(1), path(new int[_ncnt + 2]), d(new int[_ncnt + 2]), visited(new bool[_ncnt + 2]){
 		memset(path, 0, sizeof(int)*(_ncnt + 1));
@@ -8,7 +8,6 @@ public:
 		delete[](d);
 		delete[](visited);
 	}
-
 	void Reset(){
 		memset(path, 0, sizeof(int)*(ncnt + 1));
 		ecnt = 1;
@@ -16,11 +15,8 @@ public:
 	void AddEdge(int s, int t, int cap){
 		edge[++ecnt].tar = t, edge[ecnt].cap = cap, edge[ecnt].next = path[s], path[s] = ecnt;
 		edge[++ecnt].tar = s, edge[ecnt].cap = 0, edge[ecnt].next = path[t], path[t] = ecnt;
-
 	}
-
 	int MaxFlow(int s, int t){ // Dinic
-
 		int f = 0, df;
 		while (BFS(s, t) < ncnt){
 			while (true){

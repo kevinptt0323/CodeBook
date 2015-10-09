@@ -12,7 +12,7 @@ ll powmod(ll a, ll d, ll n) { // a^d%n
 	if(d==1) return a%n;
 	return mul(powmod(mul(a, a, n), d>>1, n), d%2?a:1, n);
 }
-bool miller_rabin(ll a, ll n) {
+bool miller_rabin(ll n, ll a) {
 	if (__gcd(a,n) == n ) return true;
 	if (__gcd(a,n) != 1 ) return false;
 	ll d = n-1, r = 0, res;

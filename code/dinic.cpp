@@ -1,27 +1,20 @@
 class Flow {
 public:
-	Flow(int _ncnt) :ncnt(_ncnt), ecnt(1), path(new int[_ncnt + 2]), d(new int[_ncnt + 2]), visited(new bool[_ncnt + 2]){
-		memset(path, 0, sizeof(int)*(_ncnt + 1));
+	int ncnt;
+	void reset() {
+		for(int i=0; i<3605; ++i)
+			edge[i].clear();
 	}
-	~Flow(){
-		delete[](path);
-		delete[](d);
-		delete[](visited);
-	}
-	void Reset(){
-		memset(path, 0, sizeof(int)*(ncnt + 1));
-		ecnt = 1;
-	}
-	void AddEdge(int s, int t, int cap){
-		edge[++ecnt].tar = t, edge[ecnt].cap = cap, edge[ecnt].next = path[s], path[s] = ecnt;
-		edge[++ecnt].tar = s, edge[ecnt].cap = 0, edge[ecnt].next = path[t], path[t] = ecnt;
+	void AddEdge(int s, int t){
+		edge[s].emplace_back(t, 1, edge[t].size());
+		edge[t].emplace_back(s, 0, edge[s].size()-1); //
 	}
 	int MaxFlow(int s, int t){ // Dinic
 		int f = 0, df;
-		while (BFS(s, t) < ncnt){
+		while (BFS(s, t)!=-1){
 			while (true){
-				memset(visited, 0, sizeof(bool)*(ncnt + 1));
-				df = DFS(s, INF, t);
+				memset(vst, 0, sizeof(vst));
+				df = DFS(s, 1<<30, t);
 				if (!df) break;
 				f += df;
 			}
@@ -30,25 +23,31 @@ public:
 	}
 
 private:
-	static const int eMaxSize = 40002, INF = (int) 1e9;
-	int ecnt, ncnt;
-	int *path, *d; // d for Dicic distance
-	bool *visited;
+	int d[3605]; // Dicic distance
+	bool vst[3605];
 
-	struct Edge{
-		int tar, cap, next;
-	}edge[eMaxSize];
+	struct Edge {
+		Edge(const int& t, const int& c, const int& r) : tar(t), cap(c), rev(r) {}
+		int tar;
+		int cap;
+		int rev;
+		operator tuple<int&,int&,int&>() { return tuple<int&,int&,int&>{tar, cap, rev}; }
+	};
+	vector<Edge> edge[3605];
 
-	int DFS(int a, int df, int t){
-		if (a == t) return df;
-		if (visited[a]) return 0;
-		visited[a] = true;
-		for (int i = path[a]; i; i = edge[i].next){
-			int b = edge[i].tar;
-			if (edge[i].cap > 0 && d[b] == d[a] + 1){
-				int f = DFS(b, std::min(df, edge[i].cap), t);
+	int DFS(int now, int df, int t){
+		if (now==t) return df;
+		if (vst[now]) return 0;
+		vst[now] = true;
+		int nxt, re;
+		int cap;
+		for(auto& edg: edge[now]) {
+			tie(nxt, cap, re) = edg;
+			if (cap>0 && d[nxt]==d[now]+1){
+				int f = DFS(nxt, min(df, cap), t);
 				if (f){
-					edge[i].cap -= f, edge[i ^ 1].cap += f;
+					edg.cap -= f;
+					edge[nxt][re].cap += f;
 					return f;
 				}
 			}
@@ -57,24 +56,29 @@ private:
 	}
 
 	int BFS(int s, int t){
-		memset(d, 0x7f, sizeof(int)*(ncnt + 1));
-		memset(visited, 0, sizeof(bool)*(ncnt + 1));
-		d[s] = 0; visited[s] = true;
-		std::queue<int> Q;
-		Q.push(s);
-		while (!Q.empty()){
-			int a = Q.front(); Q.pop();
-			for (int i = path[a]; i; i = edge[i].next){
-				int b = edge[i].tar;
-				if (visited[b] || edge[i].cap == 0) continue;
-				visited[b] = true;
-				d[b] = d[a] + 1;
-				if (b == t) return d[b];
-				Q.push(b);
+		memset(d, -1, sizeof(d));
+		memset(vst, false, sizeof(vst));
+		d[s] = 0;
+		vst[s] = true;
+		queue<int> qq;
+		qq.push(s);
+		int now, nxt, re;
+		int cap;
+		while (!qq.empty()) {
+			now = qq.front();
+			qq.pop();
+			for(auto& edg: edge[now]) {
+				tie(nxt, cap, re) = edg;
+				if (!vst[nxt] && cap) {
+					vst[nxt] = true;
+					d[nxt] = d[now] + 1;
+					if (nxt==t) return d[nxt];
+					qq.push(nxt);
+				}
 			}
 		}
 		return d[t];
 	}
 };
-Flow flow( 1001 );
 
+Flow flow;

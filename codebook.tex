@@ -79,37 +79,13 @@ morekeywords={*}								% if you want to add more keywords to the set
 \section{Enviroment Settings}
 \subsection{.vimrc}
 \begin{lstlisting}[label=.vimrc,language=bash]
-" set encoding
-set encoding=utf-8
-set fileencodings=utf-8,big5
-set showmode
-syntax on
-set hlsearch
-set background=dark
-set laststatus=2
-set wildmenu
-set scrolloff=5 " keep at least 5 lines above/below
-set ruler
-set cursorline
-set ic    " ignore case when searching
-set bs=2  " enable backspace
-set number
-set tabstop=4
-set shiftwidth=4
-set autoindent
-set smarttab
-set smartindent
-""""""" abbr
 syntax on
 set enc=utf-8 fencs=utf-8,big5
 set bs=2
 set smd nu bg=dark hls ls=2 wmnu so=5 ru cul
 set ts=4 sw=4 ai sta si
 set list lcs=tab:>\  "# a space after '\'
-imap<F9> <ESC>:w<Enter><F9>
-map<F9> :!g++ "%:t" -o "%:r.out" -Wall -Wshadow -O2 -Im && "./%:r.out"
-map<F10> :!g++ "%:t" -o "%:r.out" -Wall -Wshadow -O2 -Im
-autocmd! BufNewFile * silent! 0r ~/.vim/skel/Template.%:e
+map<F9> :!g++ "%" -o "%:r.out" -Wall -Wshadow -O2 -Im -std=c++11 && echo "===== done =====" && "./%:r.out"
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -247,7 +223,7 @@ int main(){
 \subsection{Kuhn Munkres (bcw)}
 \lstinputlisting{code/KuhnMunkres.cpp}
 
-\subsection{Manhattan MST}
+\subsection{Manhattan MST (bcw)}
 \lstinputlisting{code/ManhattanMST.cpp}
 
 \subsection{maximum matching in general graph}

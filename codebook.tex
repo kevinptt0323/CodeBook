@@ -25,9 +25,9 @@
 %\evensidemargin=0pt
 %\hoffset=-30pt
 
-\title{Codebook v2.0}
+\title{Codebook v2.1}
 \author{kevinptt}
-\date{Nov 25, 2016}
+\date{April 26, 2017}
 \setmainfont{Perpetua}							%主要字型
 \setmonofont{Consolas}							%等寬字型
 \setCJKmainfont{文泉驛微米黑}					%中文字型
@@ -292,134 +292,6 @@ $ ax+by=gcd(a,b) $
 
 \newpage
 \section{Others}
-\subsection{8 puzzle - IDA*}
-\begin{lstlisting}[label=8 puzzle - IDA*]
-// 一個盤面。其數值1~8代表方塊號碼，0代表空格。
-int board[3][3] = {2, 3, 4, 1, 5, 0, 7, 6, 8};
-// 檢查 permutation inversion。檢查不通過，表示盤面不合理。
-bool check_permutation_inversion(int board[3][3])
-{
-	int inversion = 0;
-	for (int a=0; a<9; ++a)
-		for (int b=0; b<a; ++b) {
-			int i = a / 3, j = a % 3;
-			int ii = b / 3, jj = b % 3;
-			if (board[i][j] && board[ii][jj]
-				&& board[i][j] < board[ii][jj])
-				inversion++;
-		}
-	int row_number_of_0 = 0;
-	for (int i=0; i<3 && !row_number_of_0; ++i)
-		for (int j=0; j<3 && !row_number_of_0; ++j)
-			if (board[i][j] == 0)
-				row_number_of_0 = i+1;
-	return (inversion + row_number_of_0) % 2 == 0;
-}
-//////////////////////////
-// heuristic function，採用不在正確位置上的方塊個數。
-int h(int board[3][3])
-{
-	int cost = 0;
-	for (int i=0; i<3; ++i)
-		for (int j=0; j<3; ++j)
-			if (board[i][j])
-				if (board[i][j] != i*3 + j + 1)
-					cost++;
-	return cost;
-}
-//////////////////////////
-int taxicab_distance(int x1, int y1, int x2, int y2)
-{return abs(x1 - x2) + abs(y1 - y2);}
- 
-// heuristic function，採用taxicab distance。
-int h(int board[3][3]) {
-	// 每塊方塊的正確位置。{0,0}是為了方便編寫程式而多加的。
-	static const int right_pos[9][2] = {
-		{0,0},
-		{0,0}, {0,1}, {0,2},
-		{1,0}, {1,1}, {1,2},
-		{2,0}, {2,1}
-	};
-	// 計算每個方塊與其正確位置的 taxicab distance 的總和。
-	int cost = 0;
-	for (int i=0; i<3; ++i)
-		for (int j=0; j<3; ++j)
-			if (board[i][j])
-				cost += taxicab_distance(
-							i, j,
-							right_pos[board[i][j]][0],
-							right_pos[board[i][j]][1]
-						);
-	return cost;
-}
-
-// 上下左右
-const string operator[4] = {"up", "down", "right", "left"};
-const int dx[4] = {-1, 1, 0, 0}, dy[4] = {0, 0, 1, -1};
-char solution[30];
-	// 正確的推動方式，其數值是方向0~3。
-const int reverse_dir[4] = {1, 0, 3, 2};
-	// 用表格紀錄每一個方向的反方向。可用於避免來回推動的判斷。
-
-int board[3][3] = {2, 3, 4, 1, 5, 0, 7, 6, 8};
-	// 起始狀態。其數值1~8代表方塊號碼，0代表空格。
-
-int sx = 1, sy = 2;
-	// 空格的位置。可馬上知道推動方塊的目的地。
-
-bool onboard(int x, int y)
-{return x>=0 && x<3 && y>=0 && y<3;}
- 
-int IDAstar(int x, int y, int gv, int prev_dir, int& bound, bool& ans) {
-	int hv = h(board);
-	if (gv + hv > bound) return gv + hv;
-		// 超過，回傳下次的bound
-	if (hv == 0) {ans = true; return gv;}
-		// 找到最佳解
- 
-	int next_bound = 1e9;
-	for (int i=0; i<4; ++i) {
-		// 四種推動方向
-		int nx = x + dx[i], ny = y + dy[i];
-			// 空格的新位置
-		if (reverse_dir[i] == prev_dir) continue;
-			// 避免來回推動
-		if (!onboard(nx, ny)) continue;
-			// 避免出界
-		solution[gv] = oper[i];
-			// 紀錄推動方向
-		swap(board[x][y], board[nx][ny]);
-			// 推動
-		int v = IDAstar(nx, ny, gv+1, i, bound, ans);
-		if (ans) return v;
-		next_bound = min(next_bound, v);
-		swap(board[nx][ny], board[x][y]);
-			// 回復原狀態
-	}
-	return next_bound;
-}
- 
-void eight_puzzle() {
-	if (!check_permutation_inversion(board)) {
-		cout << "盤面不合理，無法解得答案。" << endl;
-		return;
-	}
-	// IDA*
-	bool ans = false;
-	int bound = 0;
-	while (!ans && bound <= 50)
-		bound = IDAstar(sx, sy, 0, -1, bound, ans);
-	if (!ans) {
-		cout << "50步內無法解得答案。" << endl;
-		return;
-	}
-	// 印出移動方法
-	for (int i=0; i<bound; ++i)
-		cout << operation[solution[i]] << ' ';
-	cout << endl;
-}
-\end{lstlisting}
-
 \subsection{recursive to stack}
 replace all variable in data into layer[lay].variable
 \begin{lstlisting}[label=recursive to stack]
